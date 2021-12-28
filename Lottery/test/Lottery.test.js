@@ -94,7 +94,6 @@ describe('Lottery Contract Tests', () => {
             from: accounts[1],
             value: web3.utils.toWei('1', 'ether')
         });
-        const balance = await web3.eth.getBalance(accounts[1]);
         await contract.methods.pickWinner().send({
             from: accounts[0]
         });
