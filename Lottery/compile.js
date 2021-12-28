@@ -13,11 +13,7 @@ const input = {
         },
     },
     settings: {
-    outputSelection: {
-        '*': {
-        '*': ['*'],
-        },
-    },
+        outputSelection: { '*': { '*': ['*'] } },
     },
 };
 
