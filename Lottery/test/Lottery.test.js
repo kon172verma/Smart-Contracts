@@ -65,9 +65,9 @@ describe('Lottery Contract Tests', () => {
     //     assert.equal(amount, web3.utils.fromWei(poolAmount,'ether'));
     // });
 
-    it('Participation Amount not enough', () => {
+    it('Participation Amount not enough', async () => {
         try{
-            contracts.methods.participate().send({
+            await contracts.methods.participate().send({
                 from: accounts[0],
                 value: web3.utils.toWei('0.001', 'ether')
             });
@@ -77,15 +77,29 @@ describe('Lottery Contract Tests', () => {
         }
     });
 
-    it('Only manager can Pick Winner', () => {
+    it('Only manager can Pick Winner', async () => {
         try {
-            contracts.methods.pickWinner().send({
+            await contracts.methods.pickWinner().send({
                 from: accounts[1]
             });
             assert(false);
         } catch(error) {
             assert(error);
         }
+    });
+
+    it('Send Pool Amount to Winner', async () => {
+        const initialBalance = await web3.eth.getBalance(accounts[1]);
+        await contract.methods.participate().send({
+            from: accounts[1],
+            value: web3.utils.toWei('1', 'ether')
+        });
+        const balance = await web3.eth.getBalance(accounts[1]);
+        await contract.methods.pickWinner().send({
+            from: accounts[0]
+        });
+        const updatedBalance = await web3.eth.getBalance(accounts[1]);
+        assert(initialBalance - updatedBalance < web3.utils.toWei('0.1', 'ether'));
     });
 
 });
