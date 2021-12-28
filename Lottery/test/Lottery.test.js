@@ -19,6 +19,11 @@ describe('Lottery Contract Tests', () => {
         assert.ok(contract.options.address);
     });
 
+    it('Contract Owner equals Deployer', async () => {
+        const owner = await contract.methods.owner().call();
+        assert.equal(owner, accounts[0]);
+    });
+
     it('Single Participant Enters', async () => {
         await contract.methods.participate().send({
             from: accounts[0],
@@ -45,18 +50,42 @@ describe('Lottery Contract Tests', () => {
         }
     });
 
-    it('Pool Amount equals Participated Amount', async () => {
-        let amount = 0;
-        for (let i = 0; i < 5; i++){
-            value = (Math.floor(Math.random() * 1000) + 1) / 100;
-            amount += value;
-            contract.methods.participate().send({
-                from: accounts[i],
-                value: web3.utils.toWei(amount.toString(), 'ether')
-            })
+    // it('Pool Amount equals Participated Amount', async () => {
+    //     let amount = 0;
+    //     for (let i = 0; i < 5; i++){
+    //         value = (Math.floor(Math.random() * 1000) + 1) / 100;
+    //         amount += value;
+    //         console.log(value, amount);
+    //         contract.methods.participate().send({
+    //             from: accounts[i],
+    //             value: web3.utils.toWei(value.toString(), 'ether')
+    //         })
+    //     }
+    //     const poolAmount = contract.methods.viewBalance().call();
+    //     assert.equal(amount, web3.utils.fromWei(poolAmount,'ether'));
+    // });
+
+    it('Participation Amount not enough', () => {
+        try{
+            contracts.methods.participate().send({
+                from: accounts[0],
+                value: web3.utils.toWei('0.001', 'ether')
+            });
+            assert(false);
+        } catch(error) {
+            assert(error);
         }
-        const poolAmount = await contract.methods.viewBalance().call();
-        assert(amount, poolAmount);
+    });
+
+    it('Only manager can Pick Winner', () => {
+        try {
+            contracts.methods.pickWinner().send({
+                from: accounts[1]
+            });
+            assert(false);
+        } catch(error) {
+            assert(error);
+        }
     });
 
 });
