@@ -2,7 +2,6 @@ const assert = require('assert');
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
 const web3 = new Web3(ganache.provider());
-
 const { abi, evm } = require('../compile');
 
 let accounts, contract;
@@ -30,6 +29,34 @@ describe('Lottery Contract Tests', () => {
         });
         assert.equal(participants.length, 1);
         assert.equal(participants[0], accounts[0]);
+    });
+
+    it('Multiple Participants Enter', async () => {
+        for (let i = 0; i < 4; i++) {
+            await contract.methods.participate().send({
+                from: accounts[i],
+                value: web3.utils.toWei('0.02', 'ether')
+            });
+        }
+        const participants = await contract.methods.viewParticipants().call();
+        assert.equal(participants.length, 4);
+        for (let i = 0; i < participants.length; i++) {
+            assert.equal(participants[i],accounts[i]);
+        }
+    });
+
+    it('Pool Amount equals Participated Amount', async () => {
+        let amount = 0;
+        for (let i = 0; i < 5; i++){
+            value = (Math.floor(Math.random() * 1000) + 1) / 100;
+            amount += value;
+            contract.methods.participate().send({
+                from: accounts[i],
+                value: web3.utils.toWei(amount.toString(), 'ether')
+            })
+        }
+        const poolAmount = await contract.methods.viewBalance().call();
+        assert(amount, poolAmount);
     });
 
 });
