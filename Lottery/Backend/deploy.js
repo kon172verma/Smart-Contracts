@@ -7,6 +7,8 @@ const provider = new HDWalletProvider(
 const web3 = new Web3(provider);
 
 const { abi, evm } = require('./compile');
+const fs = require('fs');
+const path = require('path');
 
 const deploy = async () => {
     const accounts = await web3.eth.getAccounts();
@@ -17,4 +19,11 @@ const deploy = async () => {
     console.log('Contract has been deployed to: ', contract.options.address);
     provider.engine.stop();
 }
+
 deploy();
+
+const ABIpath = path.resolve(__dirname, 'abi', 'ABI.json');
+console.log('Writing ABI to: ', ABIpath);
+fs.writeFile(ABIpath, JSON.stringify(abi, undefined, 4), (err) => {
+    if (err) throw err;
+});
