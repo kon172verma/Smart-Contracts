@@ -1,5 +1,5 @@
 import React from 'react';
-import web3 from './web3';
+import web3 from './lib/web3';
 
 class App extends React.Component {
   render() {
