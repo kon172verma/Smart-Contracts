@@ -18,15 +18,9 @@ const deploy = async () => {
         .send({ from: accounts[0], gas: '1000000' });
     console.log('Contract has been deployed to: ', contract.options.address);
 
-    const ABIpath = path.resolve(__dirname, 'abi', 'ABI.json');
+    const ABIpath = path.resolve(__dirname, '../frontend/src/lib/abi', 'ABI.json');
     console.log('Writing ABI to: ', ABIpath);
-    fs.writeFile(ABIpath, JSON.stringify(abi, undefined, 4), (err) => {
-        if (err) throw err;
-    });
-
-    const AddressPath = path.resolve(__dirname, 'abi', 'Address.txt');
-    console.log('Writing Address to: ', AddressPath);
-    fs.writeFile(AddressPath, contract.options.address.toString(), (err) => {
+    fs.writeFile(ABIpath, JSON.stringify({'abi': abi, 'address': contract.options.address}, undefined, 4), (err) => {
         if (err) throw err;
     });
 
