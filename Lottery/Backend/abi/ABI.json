@@ -2,7 +2,8 @@
     {
         "inputs": [],
         "stateMutability": "nonpayable",
-        "type": "constructor"
+        "type": "constructor",
+        "signature": "constructor"
     },
     {
         "inputs": [],
@@ -15,21 +16,27 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true,
+        "signature": "0x8da5cb5b"
     },
     {
         "inputs": [],
         "name": "participate",
         "outputs": [],
         "stateMutability": "payable",
-        "type": "function"
+        "type": "function",
+        "payable": true,
+        "signature": "0xd11711a2"
     },
     {
         "inputs": [],
         "name": "pickWinner",
         "outputs": [],
         "stateMutability": "payable",
-        "type": "function"
+        "type": "function",
+        "payable": true,
+        "signature": "0x5d495aea"
     },
     {
         "inputs": [],
@@ -42,7 +49,9 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true,
+        "signature": "0x3ff1e05b"
     },
     {
         "inputs": [],
@@ -55,6 +64,8 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
+        "type": "function",
+        "constant": true,
+        "signature": "0xf1fa04a4"
     }
 ]
