@@ -2,12 +2,13 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "compile.js",
+  "main": "deploy.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "deploy": "node deploy.js"
   },
   "author": "",
   "license": "ISC",
