@@ -33,6 +33,7 @@ contract Lottery {
             )
         ) % participants.length;
         payable(participants[index]).transfer(address(this).balance);
+        delete participants;
     }
 
     modifier restricted() {
