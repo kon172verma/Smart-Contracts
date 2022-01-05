@@ -66,7 +66,6 @@ class App extends React.Component{
 
         <hr />
         <p>{this.state.message}</p>
-
       </>
     )
   }
