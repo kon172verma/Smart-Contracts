@@ -1,6 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 
+contract CampaignHub {
+    address[] public campaigns;
+
+    function createCampaign(uint256 amount, uint256 votingPercentage) public {
+        Campaign newCampaign = new Campaign(
+            msg.sender,
+            amount,
+            votingPercentage
+        );
+        campaigns.push(payable(address(newCampaign)));
+    }
+
+    function getCampaigns() public view returns (address[] memory) {
+        return campaigns;
+    }
+}
+
 contract Campaign {
     struct Request {
         string description;
