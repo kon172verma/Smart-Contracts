@@ -16,12 +16,14 @@ const input = {
         },
     },
     settings: {
-        outputSelection: { '*': { '*': ['*'] } },
+        outputSelection: { '*': { '*': ["abi", "evm.bytecode.object"] } },
     },
 };
 
 const output = JSON.parse(solc.compile(JSON.stringify(input))).contracts['campaign.sol'];
-console.log(output);
 fs.ensureDirSync(buildPath);
 
-
+for (const contract in output) {
+    const outputPath = path.resolve(buildPath, contract+'.json');
+    fs.writeFileSync(outputPath, JSON.stringify(output[contract], null, 4));
+}
