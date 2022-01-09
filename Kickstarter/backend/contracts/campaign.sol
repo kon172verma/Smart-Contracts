@@ -39,8 +39,8 @@ contract Campaign {
     mapping(address => bool) public approvers;
     uint256 public approversCount;
 
-    mapping(uint256 => Request) requests;
-    uint256 requestsCount;
+    mapping(uint256 => Request) public requests;
+    uint256 public requestsCount;
 
     constructor(
         address sender,
@@ -61,6 +61,7 @@ contract Campaign {
     }
 
     function contribute() public payable {
+        if (contributors[msg.sender] == 0) contributorsCount++;
         contributors[msg.sender] += msg.value;
     }
 
@@ -70,11 +71,13 @@ contract Campaign {
             "Not enough contribution"
         );
         approvers[msg.sender] = true;
+        approversCount++;
     }
 
     function revokeApprover() public {
         require(approvers[msg.sender], "Already not an approver");
         approvers[msg.sender] = false;
+        approversCount--;
     }
 
     function addRequest(
