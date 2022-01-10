@@ -52,8 +52,8 @@ describe('Test: Deployed Campaign Contract', () => {
             .deploy({ data: CampaignHub.evm.bytecode.object })
             .send({ from: accounts[0], gas: '3000000' });
         owner = accounts[1];
-        approvalAmount = '1000';
-        minVotingPercentage = '75';
+        approvalAmount = 1000;
+        minVotingPercentage = 75;
         await hubContract.methods.createCampaign(approvalAmount, minVotingPercentage)
             .send({ from: owner, gas: '3000000' });
         [campaignAddress] = await hubContract.methods.getCampaigns().call();
@@ -87,21 +87,50 @@ describe('Test: Deployed Campaign Contract', () => {
         assert.equal(contribution, 300);
     });
 
-    it.only('Become Approver', async() => {
-        await campaignContract.methods.contribute().send({ from: accounts[2], value: '1500' });
-        const contribution = await campaignContract.methods.contributors(accounts[2]).call();
-        console.log(approvalAmount, contribution);
-        await campaignContract.methods.becomeApprover().call();
+    it('Become Approver, Contribution >= ApprovalAmount', async() => {
+        await campaignContract.methods.contribute().send({ from: accounts[2], value: 1000 });
+        await campaignContract.methods.becomeApprover().send({from: accounts[2]});
         const isApprover = await campaignContract.methods.approvers(accounts[2]).call();
-        console.log(isApprover);
         assert(isApprover);
         const approversCount = await campaignContract.methods.approversCount().call();
         assert.equal(approversCount, 1);
-        
     });
 
-    // it('Revoke Approver', () => {
-        
-    // });
+    it('Become Approver, Contribution < ApprovalAmount', async() => {
+        await campaignContract.methods.contribute().send({ from: accounts[2], value: 100 });
+        try {
+            await campaignContract.methods.becomeApprover().send({ from: accounts[2] });
+            assert(false);
+        } catch (error) {
+            assert(error);
+            const isApprover = await campaignContract.methods.approvers(accounts[2]).call();
+            assert(!isApprover);
+            const approversCount = await campaignContract.methods.approversCount().call();
+            assert.equal(approversCount, 0);
+        }
+    });
+
+    it('Revoke Approver, Is an approver', async() => {
+        await campaignContract.methods.contribute().send({ from: accounts[2], value: 15000 });
+        await campaignContract.methods.becomeApprover().send({from: accounts[2]});
+        let isApprover = await campaignContract.methods.approvers(accounts[2]).call();
+        assert(isApprover);
+        let approversCount = await campaignContract.methods.approversCount().call();
+        assert.equal(approversCount, 1);
+        await campaignContract.methods.revokeApprover().send({from: accounts[2]});
+        isApprover = await campaignContract.methods.approvers(accounts[2]).call();
+        assert(!isApprover);
+        approversCount = await campaignContract.methods.approversCount().call();
+        assert.equal(approversCount, 0);
+    });
+
+    it('Revoke Approver, Is not an approver', async() => {
+        try {
+            await campaignContract.methods.revokeApprover().send({from: accounts[2]});
+            assert(false);
+        } catch (error) {
+            assert(error);
+        }
+    });
 
 });
