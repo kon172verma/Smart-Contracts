@@ -116,7 +116,7 @@ contract Campaign {
         Request storage request = requests[requestId];
         require(!requests[requestId].complete, "Already finalized");
         require(
-            (request.votesCount / approversCount) * 100 >= minVotingPercentage,
+            (request.votesCount * 100) / approversCount >= minVotingPercentage,
             "Not enough approvers voted."
         );
         require(
