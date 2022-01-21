@@ -12,9 +12,9 @@ const Header = () => {
             <Container maxWidth='lg'>
                 <Toolbar>
                     <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                        Crypto Knight
+                        &sdot;&sdot;&sdot;&nbsp;&nbsp;CRYPTO KNIGHT&nbsp;&nbsp;&sdot;&sdot;&sdot;
                     </Typography>
-                    <Button color='inherit' startIcon={<AddSharpIcon />}>
+                    <Button color='primary' variant='contained' disableElevation startIcon={<AddSharpIcon />}>
                         Create Campaign
                     </Button>
                 </Toolbar>

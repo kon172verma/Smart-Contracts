@@ -1,32 +1,29 @@
 import * as React from 'react';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import CardMedia from '@mui/material/CardMedia';
+import { Card, Button, Typography } from '@mui/material';
+import { CardActions, CardContent } from '@mui/material';
 
-export default function CampaignCard() {
+const CampaignCard = (props) => {
+    const address = Object.keys(props.campaign)[0];
+    const data = props.campaign[address];
     return (
-        <Card sx={{ border:'1px solid gray', margin: '10px', display:'flex' }}>
-            <CardContent sx={{ flex: '1 0 auto' }}>
-            <Typography gutterBottom variant='h5' component='div'>
-            Lizard
-            </Typography>
-            <Typography variant='body2' color='text.secondary'>
-            Lizards are a widespread group of squamate reptiles, with over 6,000
-            species, ranging across all continents except Antarctica
-            </Typography>
-            <CardActions>
-                <Button size='small'>View Campaign</Button>
-            </CardActions>
-        </CardContent>
-            <CardMedia
-                component="img"
-                sx={{ width: 151 }}
-                image="https://mui.com/static/images/cards/live-from-space.jpg"
-                alt="Live from space album cover"
-            />
+        <Card sx={{ border:'1px solid gray', margin: '10px'}}>
+            <CardContent>
+                <Typography gutterBottom variant='h6' component='div'> {data[1]} </Typography>
+                <Typography variant='subtitle1' color='text.secondary'> {data[2]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> &nbsp; </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Owner: {data[0]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Money Raised: {data[3]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Contributors: {data[6]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Approvers: {data[7]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Approval Amount: {data[4]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Request Voting Percentage: {data[5]} </Typography>
+                <Typography variant='subtitle2' color='text.secondary'> Contract Address: {address} </Typography>
+            </CardContent>
+                <CardActions>
+                    <Button size='small'>View Campaign</Button>
+                </CardActions>
         </Card>
     );
 }
+
+export default CampaignCard; 

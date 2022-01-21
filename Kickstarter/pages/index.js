@@ -1,23 +1,33 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import CampaignCard from '../components/CampaignCard';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
+import { Container, Typography } from '@mui/material';
+
+import web3 from '../web3';
+import instance from '../instance';
+import Campaign from '../build/Campaign.json';
 
 class Home extends React.Component{
-    // static async getInitialProps() {
-        
-    // }
+    static async getInitialProps() {
+        const addresses = await instance.methods.getCampaigns().call();
+        const campaigns = await Promise.all(addresses.map(async(address) => {
+            const contract = await new web3.eth.Contract(Campaign.abi, address);
+            return {[address]: await contract.methods.summarize().call()};
+        }));
+        return { campaigns };
+    }
     render() {
         return (
             <Layout>
                 <Container>
-                    <Typography variant='h5' component='div' align='center' sx={{padding:'15px', color:'gray'}} >
+                    <Typography variant='h5' component='div' align='left' sx={{padding:'15px 0 5px 30px', color:'gray'}} >
                         Current Campaigns
                     </Typography>
-                    <CampaignCard/>
-                    <CampaignCard/>
-                    <CampaignCard/>
+                    {Object.keys(this.props.campaigns).map((index) => {
+                        return (
+                            <CampaignCard campaign={this.props.campaigns[index]} key={index}/>
+                        )
+                    })}
                 </Container>
             </Layout>
         );
