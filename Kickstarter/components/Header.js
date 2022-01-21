@@ -13,11 +13,9 @@ const Header = () => {
                             &sdot;&sdot;&sdot;&nbsp;&nbsp;CRYPTO KNIGHT&nbsp;&nbsp;&sdot;&sdot;&sdot;
                         </Link>
                     </Typography>
-                    <Link href='/newCampaign'>
-                        <Button color='primary' variant='contained' disableElevation startIcon={<AddSharpIcon />}>
-                            Create Campaign
-                        </Button>
-                    </Link>
+                    <Button href='/newCampaign' color='primary' variant='contained' disableElevation startIcon={<AddSharpIcon />}>
+                        Create Campaign
+                    </Button>
                 </Toolbar>
             </Container>
         </AppBar>
