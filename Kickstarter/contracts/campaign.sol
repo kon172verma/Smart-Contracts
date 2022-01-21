@@ -133,13 +133,36 @@ contract Campaign {
         require(!requests[requestId].complete, "Already finalized");
         require(
             (request.votesCount * 100) / approversCount >= minVotingPercentage,
-            "Not enough approvers voted."
+            "Not enough approvers voted"
         );
         require(
             request.yesCount > request.noCount,
             "Not enough people approved"
         );
+        require(address(this).balance >= request.value, "Not enough funds");
         payable(request.recepient).transfer(request.value);
         request.complete = true;
+    }
+
+    function summarize() public view returns (
+        address,
+        string memory,
+        string memory,
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        uint256
+    ){
+        return (
+            owner,
+            campaignTitle,
+            campaignDescription,
+            address(this).balance,
+            approvalAmount,
+            minVotingPercentage,
+            contributorsCount,
+            approversCount
+        );
     }
 }
