@@ -23,7 +23,7 @@ describe('Test: CampaignHub Smart Contract', () => {
 
     it('Deploying new Campaign Contract', async() => {
         let campaignAddress;
-        await hubContract.methods.createCampaign('100', '80')
+        await hubContract.methods.createCampaign('title', 'desc', '100', '80')
             .send({ from: accounts[0], gas: '3000000' });
         [campaignAddress] = await hubContract.methods.getCampaigns().call();
         assert.ok(campaignAddress);
@@ -31,7 +31,7 @@ describe('Test: CampaignHub Smart Contract', () => {
 
     it('Deploying multiple new Campaign Contracts', async () => {
         for (let i = 0; i < 5; i++)
-            await hubContract.methods.createCampaign('100', '80')
+            await hubContract.methods.createCampaign('title', 'desc', '100', '80')
                 .send({ from: accounts[0], gas: '3000000' });
         const campaignAddresses = await hubContract.methods.getCampaigns().call();
         assert.equal(campaignAddresses.length, 5);
@@ -54,7 +54,7 @@ describe('Test: Deployed Campaign Contract', () => {
         owner = accounts[1];
         approvalAmount = 1000;
         minVotingPercentage = 75;
-        await hubContract.methods.createCampaign(approvalAmount, minVotingPercentage)
+        await hubContract.methods.createCampaign('title', 'desc', approvalAmount, minVotingPercentage)
             .send({ from: owner, gas: '3000000' });
         [campaignAddress] = await hubContract.methods.getCampaigns().call();
         campaignContract = await new web3.eth.Contract(Campaign.abi, campaignAddress);
@@ -62,12 +62,16 @@ describe('Test: Deployed Campaign Contract', () => {
     
     it('Initial Values Check - Deployed Campaign Contract', async () => {
         const campaignOwner = await campaignContract.methods.owner().call();
+        const campaignTitle = await campaignContract.methods.campaignTitle().call();
+        const campaignDescription = await campaignContract.methods.campaignDescription().call();
         const campaignApprovalAmount = await campaignContract.methods.approvalAmount().call();
         const campaignVotingPercentage = await campaignContract.methods.minVotingPercentage().call();
         const campaignApproversCount = await campaignContract.methods.approversCount().call();
         const campaignContributorsCount = await campaignContract.methods.contributorsCount().call();
         const campaignRequestsCount = await campaignContract.methods.requestsCount().call();
         assert.equal(campaignOwner, owner);
+        assert.equal(campaignTitle, 'title');
+        assert.equal(campaignDescription, 'desc');
         assert.equal(campaignApprovalAmount, approvalAmount);
         assert.equal(campaignVotingPercentage, minVotingPercentage);
         assert.equal(campaignApproversCount, 0);
@@ -134,18 +138,19 @@ describe('Test: Deployed Campaign Contract', () => {
     });
 
     it('Add Request - Campaign owner', async () => {
-        await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
+        await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
         const requestsCount = await campaignContract.methods.requestsCount().call();
         assert.equal(requestsCount, 1);
         const request = await campaignContract.methods.requests(0).call();
-        assert.equal(request.description, 'Payment for buying batteries');
+        assert.equal(request.requestTitle, 'Payment for buying batteries');
+        assert.equal(request.requestDescription, 'payment');
         assert.equal(request.value, 100);
         assert.equal(request.recepient, accounts[2]);
     });
 
     it('Add Request - Not campaign owner', async () => {
         try {
-            await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[3]).send({ from: accounts[2], gas: '300000' });
+            await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[3]).send({ from: accounts[2], gas: '300000' });
             assert(false);
         } catch (error) {
             assert(error);
@@ -155,7 +160,7 @@ describe('Test: Deployed Campaign Contract', () => {
     });
 
     it('Approve Request - Approver', async () => {
-        await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
+        await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
         await campaignContract.methods.contribute().send({ from: accounts[3], value: 1000 });
         await campaignContract.methods.becomeApprover().send({ from: accounts[3] });
         await campaignContract.methods.contribute().send({ from: accounts[4], value: 2000 });
@@ -175,7 +180,7 @@ describe('Test: Deployed Campaign Contract', () => {
     });
 
     it('Approve Request - Not Approver', async () => {
-        await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
+        await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
         try {
             await campaignContract.methods.approveRequest(0, 1).send({ from: accounts[3] });
             assert(false);
@@ -185,7 +190,7 @@ describe('Test: Deployed Campaign Contract', () => {
     });
 
     it('Finalize Request - Approver', async () => {
-        await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
+        await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
         await campaignContract.methods.contribute().send({ from: accounts[3], value: 1000 });
         await campaignContract.methods.becomeApprover().send({ from: accounts[3] });
         await campaignContract.methods.contribute().send({ from: accounts[4], value: 2000 });
@@ -209,7 +214,7 @@ describe('Test: Deployed Campaign Contract', () => {
     });
 
     it('Finalize Request - Not Approver', async () => {
-        await campaignContract.methods.addRequest('Payment for buying batteries', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
+        await campaignContract.methods.addRequest('Payment for buying batteries', 'payment', 100, accounts[2]).send({ from: accounts[1], gas: '300000' });
         try {
             await campaignContract.methods.finalizeRequest(0).send({ from: accounts[2], gas: '100000' });
             assert(false);

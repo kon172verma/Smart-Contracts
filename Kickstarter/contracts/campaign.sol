@@ -4,9 +4,16 @@ pragma solidity >=0.8.0;
 contract CampaignHub {
     address[] public campaigns;
 
-    function createCampaign(uint256 amount, uint256 votingPercentage) public {
+    function createCampaign(
+        string memory title,
+        string memory description,
+        uint256 amount,
+        uint256 votingPercentage
+    ) public {
         Campaign newCampaign = new Campaign(
             msg.sender,
+            title,
+            description,
             amount,
             votingPercentage
         );
@@ -20,9 +27,11 @@ contract CampaignHub {
 
 contract Campaign {
     struct Request {
-        string description;
+        string requestTitle;
+        string requestDescription;
         uint256 value;
         address recepient;
+        // Votes --- 0: Not voted(default), 1: Yes, 2: No, 3: Don't Care.
         mapping(address => uint8) votes;
         uint256 yesCount;
         uint256 noCount;
@@ -31,12 +40,14 @@ contract Campaign {
     }
 
     address public owner;
+    string public campaignTitle;
+    string public campaignDescription;
     uint256 public approvalAmount;
     uint256 public minVotingPercentage;
 
     mapping(address => uint256) public contributors;
-    uint256 public contributorsCount;
     mapping(address => bool) public approvers;
+    uint256 public contributorsCount;
     uint256 public approversCount;
 
     mapping(uint256 => Request) public requests;
@@ -44,10 +55,14 @@ contract Campaign {
 
     constructor(
         address sender,
+        string memory title,
+        string memory description,
         uint256 amount,
         uint256 votingPercentage
     ) {
         owner = sender;
+        campaignTitle = title;
+        campaignDescription = description;
         approvalAmount = amount;
         minVotingPercentage = votingPercentage;
         contributorsCount = 0;
@@ -81,13 +96,15 @@ contract Campaign {
     }
 
     function addRequest(
+        string memory title,
         string memory description,
         uint256 value,
         address recepient
     ) public restricted {
         Request storage newRequest = requests[requestsCount];
         requestsCount++;
-        newRequest.description = description;
+        newRequest.requestTitle = title;
+        newRequest.requestDescription = description;
         newRequest.value = value;
         newRequest.recepient = recepient;
         newRequest.yesCount = 0;
@@ -96,7 +113,6 @@ contract Campaign {
         newRequest.complete = false;
     }
 
-    // Votes --- 0: Not voted(default), 1: Yes, 2: No, 3: Don't Care.
     function approveRequest(uint256 requestId, uint8 vote) public {
         require(approvers[msg.sender], "Not an approver");
         require(requestId < requestsCount, "Invalid id");
