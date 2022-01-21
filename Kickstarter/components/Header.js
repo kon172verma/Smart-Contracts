@@ -1,10 +1,7 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Container from '@mui/material/Container';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import AddSharpIcon from '@mui/icons-material/AddSharp';
+import { Link, AppBar, Container, Toolbar, Typography, Button} from '@mui/material';
+
 
 const Header = () => {
     return (
@@ -12,11 +9,15 @@ const Header = () => {
             <Container maxWidth='lg'>
                 <Toolbar>
                     <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                        &sdot;&sdot;&sdot;&nbsp;&nbsp;CRYPTO KNIGHT&nbsp;&nbsp;&sdot;&sdot;&sdot;
+                        <Link href='/' color='inherit' variant='inherit' underline='none' >
+                            &sdot;&sdot;&sdot;&nbsp;&nbsp;CRYPTO KNIGHT&nbsp;&nbsp;&sdot;&sdot;&sdot;
+                        </Link>
                     </Typography>
-                    <Button color='primary' variant='contained' disableElevation startIcon={<AddSharpIcon />}>
-                        Create Campaign
-                    </Button>
+                    <Link href='/newCampaign'>
+                        <Button color='primary' variant='contained' disableElevation startIcon={<AddSharpIcon />}>
+                            Create Campaign
+                        </Button>
+                    </Link>
                 </Toolbar>
             </Container>
         </AppBar>
