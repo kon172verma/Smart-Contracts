@@ -21,6 +21,7 @@
     "@mui/icons-material": "^5.3.0",
     "@mui/material": "^5.3.0",
     "@mui/styled-engine-sc": "^5.3.0",
+    "@mui/styles": "^5.3.0",
     "@truffle/hdwallet-provider": "^2.0.0",
     "fs-extra": "^10.0.0",
     "ganache-cli": "^6.12.2",

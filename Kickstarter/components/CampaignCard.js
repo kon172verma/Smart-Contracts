@@ -20,9 +20,9 @@ const CampaignCard = (props) => {
                 <CardTypography title='Request Voting Percentage:' text={data[5]}/>
                 <CardTypography title='Contract Address:' text={address}/>
             </CardContent>
-                <CardActions>
-                    <Button size='medium'>View Campaign</Button>
-                </CardActions>
+            <CardActions>
+                <Button size='medium'>View Campaign</Button>
+            </CardActions>
         </Card>
     );
 }
