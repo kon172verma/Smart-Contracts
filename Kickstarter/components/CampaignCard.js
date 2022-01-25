@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Card, Button, Typography } from '@mui/material';
-import { CardActions, CardContent } from '@mui/material';
+import { Card, Button, Typography, CardActions, CardContent } from '@mui/material';
 import CardTypography from './CardTypography';
 
 const CampaignCard = (props) => {
