@@ -8,7 +8,7 @@ const CampaignCard = (props) => {
     return (
         <Card sx={{margin: '20px'}}>
             <CardContent>
-                <Typography gutterBottom variant='h6' component='div'> {data[1]} </Typography>
+                <Typography gutterBottom variant='h6'> {data[1]} </Typography>
                 <Typography variant='subtitle1' color='text.primary'> {data[2]} </Typography>
                 <Typography variant='subtitle2' color='text.secondary'> &nbsp; </Typography>
                 <CardTypography title='Owner:' text={data[0]}/>

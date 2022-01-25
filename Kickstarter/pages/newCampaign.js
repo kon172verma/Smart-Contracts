@@ -43,7 +43,7 @@ class newCampaign extends React.Component{
         return (
             <Layout>
                 <Container>
-                    <Typography variant='h5' component='div' align='center' sx={{padding:'20px 30px 0 30px', mt:2, color:'gray'}} >
+                    <Typography variant='h5' align='center' sx={{padding:'20px 30px 0 30px', mt:2, color:'gray'}} >
                         Create new Campaign
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', mt:1 }} justifyContent="center">

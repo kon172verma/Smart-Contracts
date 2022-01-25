@@ -20,7 +20,7 @@ class Home extends React.Component{
         return (
             <Layout>
                 <Container>
-                    <Typography variant='h5' component='div' align='center' sx={{padding:'20px 30px 0 30px', color:'gray'}} >
+                    <Typography variant='h5' color='text.secondary' align='center' sx={{ mt:3 }} >
                         Current Campaigns
                     </Typography>
                     {Object.keys(this.props.campaigns).map((index) => {
