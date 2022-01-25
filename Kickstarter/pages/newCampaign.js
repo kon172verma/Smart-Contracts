@@ -12,17 +12,20 @@ class newCampaign extends React.Component{
         approvalAmount: '',
         votingPercentage: '',
         loading: false,
-        errorMessage: ''
+        errorMessage: '',
+        successMessage: ''
     };
 
     createCampaign = async () => {
-        this.setState({ loading: true, errorMessage: '' });
+        this.setState({ loading: true, errorMessage: '', successMessage:'' });
         try {
             const accounts = await web3.eth.getAccounts();
             await instance.methods.createCampaign(
                 this.state.title, this.state.description,
                 this.state.approvalAmount, this.state.votingPercentage
-            ).send({from: accounts[0]});
+            ).send({ from: accounts[0] });
+            const message = 'New campaign: "' + this.state.title + '" created successfully';
+            this.setState({ successMessage: message, title:'', description:'', approvalAmount:'', votingPercentage:'' });
         } catch (error) {
             this.setState({ errorMessage: error.message });
         }
@@ -50,7 +53,7 @@ class newCampaign extends React.Component{
                             sx={{ m: 1, mt:3 }}
                             value={this.state.title}
                             onChange={(event) => {
-                                this.setState({title: event.target.value})
+                                this.setState({title: event.target.value, errorMessage: '', successMessage:''})
                             }}
                             disabled = {this.state.loading}
                         />
@@ -62,7 +65,7 @@ class newCampaign extends React.Component{
                             sx={{ m: 1 }}
                             value={this.state.description}
                             onChange={(event) => {
-                                this.setState({description: event.target.value})
+                                this.setState({description: event.target.value, errorMessage: '', successMessage:''})
                             }}
                             disabled = {this.state.loading}
                         />
@@ -77,7 +80,7 @@ class newCampaign extends React.Component{
                             }}
                             value={this.state.approvalAmount}
                             onChange={(event) => {
-                                this.setState({approvalAmount: event.target.value})
+                                this.setState({approvalAmount: event.target.value, errorMessage: '', successMessage:''})
                             }}
                             disabled = {this.state.loading}
                         />
@@ -92,7 +95,7 @@ class newCampaign extends React.Component{
                             }}
                             value={this.state.votingPercentage}
                             onChange={(event) => {
-                                this.setState({votingPercentage: event.target.value})
+                                this.setState({votingPercentage: event.target.value, errorMessage: '', successMessage:''})
                             }}
                             disabled = {this.state.loading}
                         />
@@ -110,7 +113,11 @@ class newCampaign extends React.Component{
                         }
                         {
                             !!this.state.errorMessage ?
-                            <Alert severity="error" sx={{ mt:2, width:'100%' }}>{this.state.errorMessage}</Alert> :
+                                <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{this.state.errorMessage}</Alert> :
+                                <></>
+                        }{
+                            !!this.state.successMessage ?
+                            <Alert severity="success" sx={{ mt:2, width:'100%' }}>{this.state.successMessage}</Alert> :
                             <></>
                         }
                     </Box>
