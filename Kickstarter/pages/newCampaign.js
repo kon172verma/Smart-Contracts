@@ -46,7 +46,7 @@ class newCampaign extends React.Component{
                     <Typography variant='h5' align='center' sx={{padding:'20px 30px 0 30px', mt:2, color:'gray'}} >
                         Create new Campaign
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', mt:1 }} justifyContent="center">
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', mt:1 }} justifyContent='center'>
                         <TextField
                             id='title' label='Title'
                             fullWidth
@@ -102,19 +102,19 @@ class newCampaign extends React.Component{
                         {
                             this.state.loading ?
                             <CircularProgress sx={{ mt: 3 }} /> :
-                                <Button
-                                    variant="contained"
-                                    size='large'
-                                    sx={{ m: 1, mt: 3, mb: 3 }}
-                                    onClick={this.createCampaign}
-                                >
+                            <Button
+                                variant="contained"
+                                size='large'
+                                sx={{ m: 1, mt: 3, mb: 3 }}
+                                onClick={this.createCampaign}
+                            >
                                 Create Campaign
                             </Button>
                         }
                         {
                             !!this.state.errorMessage ?
-                                <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{this.state.errorMessage}</Alert> :
-                                <></>
+                            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>{this.state.errorMessage}</Alert> :
+                            <></>
                         }{
                             !!this.state.successMessage ?
                             <Alert severity="success" sx={{ mt:2, width:'100%' }}>{this.state.successMessage}</Alert> :
