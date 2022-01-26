@@ -20,7 +20,7 @@ const CampaignCard = (props) => {
                 <CardTypography value='subtitle2' title='Contract Address:' text={address}/>
             </CardContent>
             <CardActions>
-                <Button size='medium'>View Campaign</Button>
+                <Button href={`/campaigns/${address}`} size='medium'>View Campaign</Button>
             </CardActions>
         </Card>
     );

@@ -1,6 +1,6 @@
 import React from 'react';
-import Layout from '../components/Layout';
-import CardTypography from '../components/CardTypography';
+import Layout from '../../components/Layout';
+import CardTypography from '../../components/CardTypography';
 import AddSharpIcon from '@mui/icons-material/AddSharp';
 
 import { Container, Typography, Box, Button, ButtonGroup, TextField, Paper } from '@mui/material';
@@ -118,7 +118,6 @@ class Campaign extends React.Component{
                                 </AccordionDetails>
                             </Accordion>
 
-                            
                             <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.handleChange}>
                                 <AccordionSummary
                                 expandIcon={<ExpandMoreIcon />}
