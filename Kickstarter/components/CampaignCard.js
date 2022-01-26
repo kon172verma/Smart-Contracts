@@ -11,13 +11,13 @@ const CampaignCard = (props) => {
                 <Typography gutterBottom variant='h6'> {data[1]} </Typography>
                 <Typography variant='subtitle1' color='text.primary'> {data[2]} </Typography>
                 <Typography variant='subtitle2' color='text.secondary'> &nbsp; </Typography>
-                <CardTypography title='Owner:' text={data[0]}/>
-                <CardTypography title='Money Raised:' text={data[3]}/>
-                <CardTypography title='Contributors:' text={data[6]}/>
-                <CardTypography title='Approvers:' text={data[7]}/>
-                <CardTypography title='Approval Amount:' text={data[4]}/>
-                <CardTypography title='Request Voting Percentage:' text={data[5]}/>
-                <CardTypography title='Contract Address:' text={address}/>
+                <CardTypography value='subtitle2' title='Owner:' text={data[0]}/>
+                <CardTypography value='subtitle2' title='Money Raised:' text={data[3]}/>
+                <CardTypography value='subtitle2' title='Contributors:' text={data[6]}/>
+                <CardTypography value='subtitle2' title='Approvers:' text={data[7]}/>
+                <CardTypography value='subtitle2' title='Approval Amount:' text={data[4]}/>
+                <CardTypography value='subtitle2' title='Request Voting Percentage:' text={data[5]}/>
+                <CardTypography value='subtitle2' title='Contract Address:' text={address}/>
             </CardContent>
             <CardActions>
                 <Button size='medium'>View Campaign</Button>
