@@ -7,61 +7,113 @@ import { Container, Typography, Box, Button, ButtonGroup, TextField, Paper } fro
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import web3 from '../../web3';
+import campaignContract from '../../build/Campaign.json';
+
 class Campaign extends React.Component{
+    static async getInitialProps(props) {
+        const address = props.query.address;
+        const contract = await new web3.eth.Contract(campaignContract.abi, address);
+        const data = await contract.methods.summarize().call();
+        const owner = data[0];
+        const title = data[1];
+        const description = data[2];
+        const balance = data[3];
+        const approvalAmount = data[4];
+        const minVotingPercentage = data[5];
+        const contributorsCount = data[6];
+        const approversCount = data[7];
+        const requestsCount = await contract.methods.requestsCount().call();
+        return {
+            address, owner, title, description, balance, approvalAmount, minVotingPercentage,
+            contributorsCount, approversCount, requestsCount, contract
+        };
+    }
     state = {
+        login: false,
+        account: '',
+        contributionAmount: 0,
+        approver: false,
+        errorMessage: '',
+        successMessage: '',
         expanded: false
     }
+
+    checkLogin = async() => {
+        const accounts = await web3.eth.getAccounts();
+        if(this.state.account != accounts[0])
+            accounts[0] ? this.setState({ login: true, account: accounts[0] }) : this.setState({ login: false, account: '' });
+    }
+
+    getUserData = async () => {
+        if (this.state.login) {
+            const contribution = this.props.contract.methods.contributors(this.state.address).call();
+            this.setState({})
+        }
+    }
+
     handleChange = () => {
         this.state.expanded ?
         this.setState({ expanded: false }) :
         this.setState({ expanded: 'panel1' });
     };
+
     render() {
+        this.checkLogin();
+
         return (
             <Layout>
                 <Container>
-                    <Typography variant='h5' align='center' sx={{ mt:2, padding: '20px 30px 0 30px' }}>
-                        JOY: A healthy conversation about race
-                    </Typography>
-                    <Typography variant='subtitle1' align='center' color='text.secondary' sx={{ m:2 }}>
-                        This is a book about a little girl who asks her dad about race. They talk about its origins and how her Blackness can be joyful. This is a book about a little girl who asks her dad about race. They talk about its origins and how her Blackness can be joyful. This is a book about a little girl who asks her dad about race. They talk about its origins and how her Blackness can be joyful.
-                    </Typography>
+                    <Typography variant='h5' align='center' sx={{ mt:2, padding: '20px 30px 0 30px' }}>{ this.props.title }</Typography>
+                    <Typography variant='subtitle1' align='center' color='text.secondary' sx={{ m:2 }}>{ this.props.description }</Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', ml: 2, mr: 2 }}>
                         <Box sx={{width:'max-content', maxWidth:'20%', height:'max-content', p:2, mt:4, mr:2, border:'1px dashed gray'}}>
                             <Typography variant='h6' color='text.secondary' sx={{ pb: 1 }}>Campaign Details</Typography>
-                            <CardTypography value='subtitle2' title='Money Raised:' text='0'/>
-                            <CardTypography value='subtitle2' title='Contributors:' text='0'/>
-                            <CardTypography value='subtitle2' title='Approvers:' text='0'/>
-                            <CardTypography value='subtitle2' title='Approval Amount:' text='1000'/>
-                            <CardTypography value='subtitle2' title='Requests:' text='0' />
-                            <CardTypography value='subtitle2' title='Request Voting Percentage:' text='75' />
+                            <CardTypography value='subtitle2' title='Money Raised:' text={ this.props.balance }/>
+                            <CardTypography value='subtitle2' title='Contributors:' text={ this.props.contributorsCount }/>
+                            <CardTypography value='subtitle2' title='Approvers:' text={ this. props.approversCount }/>
+                            <CardTypography value='subtitle2' title='Approval Amount:' text={ this.props.approvalAmount }/>
+                            <CardTypography value='subtitle2' title='Requests:' text={ this.props.requestsCount } />
+                            <CardTypography value='subtitle2' title='Request Voting Percentage:' text={ this.props.minVotingPercentage } />
 
                             <Typography variant='h6' color='text.secondary' sx={{ mt: 3 }}>Make Contribution</Typography>
                             <Typography variant='subtitle2' align='center' color='text.secondary' sx={{ mt:2, mb:2, ml:1, mr:1 }}>
-                                Login to view<br />
-                                You have already contributed 1000 Wei, but you can always contribute more...
+                                {
+                                    this.state.login ?
+                                    'You have already contributed 1000 Wei, but you can always contribute more...' :
+                                    'Login to view' 
+                                }
                             </Typography>
-                            <TextField
-                                label='Amount'
-                                fullWidth
-                                sx={{mb:1}}
-                                size = 'small'
-                                // value={this.state.title}
-                                // onChange={(event) => {
-                                //     this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                // }}
-                                // disabled = {this.state.loading}
-                            />
-                            <Button variant='outlined' sx={{ width: '100%' }}>
-                                Contribute
-                            </Button>
+                            {
+                                this.state.login ?
+                                <>
+                                    <TextField
+                                        label='Amount'
+                                        fullWidth
+                                        sx={{mb:1}}
+                                        size = 'small'
+                                        value={this.state.title}
+                                        onChange={(event) => {
+                                            this.setState({title: event.target.value, errorMessage: '', successMessage:''})
+                                        }}
+                                        disabled = {this.state.loading}
+                                    />
+                                    <Button variant='outlined' sx={{ width: '100%' }}>
+                                        Contribute
+                                    </Button>
+                                </> : <></>
+                                    
+                                    
+                            }
 
 
                             <Typography variant='h6' color='text.secondary' sx={{ mt: 3 }}>Approver Status</Typography>
-                            <Typography variant='subtitle2' align='center' color='text.secondary' sx={{ m:2 }}>
-                                Login to view<br/>
-                                Not enough contribution<br/>
-                                Enough contribution<br/>
+                            <Typography variant='subtitle2' align='center' color='text.secondary' sx={{ m: 2 }}>
+                                {
+                                    this.state.login ? 
+                                    'Not enough contribution<br/>Enough contribution' :
+                                    'Login to view'
+                                }
                             </Typography>
                             <Button variant='outlined' sx={{ width: '100%' }}>
                                 Become Approver<br/>
@@ -69,13 +121,15 @@ class Campaign extends React.Component{
                             </Button>
                             
                         </Box>
-                        <Box sx={{ mt: 4, maxWidth:'75%' }}>
-                            <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr:1 }}>
-                                Contract Address: 0x7206980B2cD40a98f57AB79902BC0f6385F27ed0
+                        <Box sx={{ mt: 4, maxWidth: '75%' }}>
+                            
+                            <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr: 1 }}>
+                                Contract Address: {this.props.address}
                             </Typography>
-                            <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr:1 }}>
-                                Owner: 0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e
+                            <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr: 1 }}>
+                                Owner: {this.props.owner}
                             </Typography>
+
                             <Typography variant='h6' align='left' color='text.secondary' sx={{ p: 1 }}>
                                 Requests for Approval
                             </Typography>
