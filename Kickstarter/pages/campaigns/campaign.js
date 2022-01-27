@@ -3,8 +3,8 @@ import Layout from '../../components/Layout';
 import CardTypography from '../../components/CardTypography';
 import AddSharpIcon from '@mui/icons-material/AddSharp';
 
-import { Container, Typography, Box, Button, ButtonGroup, TextField, Paper } from '@mui/material';
-import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
+import { Container, Typography, Box, Button, ButtonGroup, TextField, LinearProgress } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Alert } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import web3 from '../../web3';
@@ -18,8 +18,8 @@ class Campaign extends React.Component{
         const owner = data[0];
         const title = data[1];
         const description = data[2];
-        const balance = data[3];
-        const approvalAmount = data[4];
+        const balance = web3.utils.fromWei(data[3]);
+        const approvalAmount = web3.utils.fromWei(data[4]);
         const minVotingPercentage = data[5];
         const contributorsCount = data[6];
         const approversCount = data[7];
@@ -32,23 +32,65 @@ class Campaign extends React.Component{
     state = {
         login: false,
         account: '',
-        contributionAmount: 0,
-        approver: false,
+
+        loading: false,
         errorMessage: '',
         successMessage: '',
+
+        currentContribution: 0,
+        tempContribution: '',
+
+        approver: false,
         expanded: false
     }
 
     checkLogin = async() => {
         const accounts = await web3.eth.getAccounts();
-        if(this.state.account != accounts[0])
-            accounts[0] ? this.setState({ login: true, account: accounts[0] }) : this.setState({ login: false, account: '' });
+        if(this.state.account != accounts[0]){
+            if (accounts[0]) {
+                this.setState({ login: true, account: accounts[0] });
+                const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
+                const currentContribution = web3.utils.fromWei(await contract.methods.contributors(accounts[0]).call());
+                const approver = await contract.methods.approvers(accounts[0]).call();
+                console.log('contribution: ', currentContribution, 'approver: ', approver);
+                this.setState({ currentContribution, approver });
+            } else {
+                this.setState({ login: false, account: '' });
+            }
+        }
     }
-
-    getUserData = async () => {
-        if (this.state.login) {
-            const contribution = this.props.contract.methods.contributors(this.state.address).call();
-            this.setState({})
+    makeContribution = async () => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
+            await contract.methods.contribute().send({
+                from: this.state.account,
+                value: web3.utils.toWei(this.state.tempContribution)
+            })
+            this.setState({ loading: false, successMessage: 'Thank you for your contribution.!', errorMessage: '' });
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
+        }
+    }
+    toggleApprover = async () => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
+            if(this.state.approver){
+                await contract.methods.revokeApprover().send({ from: this.state.account });
+                this.setState({
+                    loading: false, approver: false,
+                    successMessage: 'Your approver status has been revoked.!', errorMessage: ''
+                });
+            } else {
+                await contract.methods.becomeApprover().send({ from: this.state.account });
+                this.setState({
+                    loading: false, approver: true,
+                    successMessage: 'Congrats, You are now an approver.!', errorMessage: ''
+                });
+            }
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
     }
 
@@ -60,76 +102,78 @@ class Campaign extends React.Component{
 
     render() {
         this.checkLogin();
-
         return (
             <Layout>
+                { this.state.loading ? <LinearProgress color="inherit"/> : <></> }
                 <Container>
                     <Typography variant='h5' align='center' sx={{ mt:2, padding: '20px 30px 0 30px' }}>{ this.props.title }</Typography>
                     <Typography variant='subtitle1' align='center' color='text.secondary' sx={{ m:2 }}>{ this.props.description }</Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', ml: 2, mr: 2 }}>
                         <Box sx={{width:'max-content', maxWidth:'20%', height:'max-content', p:2, mt:4, mr:2, border:'1px dashed gray'}}>
                             <Typography variant='h6' color='text.secondary' sx={{ pb: 1 }}>Campaign Details</Typography>
-                            <CardTypography value='subtitle2' title='Money Raised:' text={ this.props.balance }/>
+                            <CardTypography value='subtitle2' title='Money Raised:' text={ this.props.balance + ' ETH' }/>
                             <CardTypography value='subtitle2' title='Contributors:' text={ this.props.contributorsCount }/>
                             <CardTypography value='subtitle2' title='Approvers:' text={ this. props.approversCount }/>
-                            <CardTypography value='subtitle2' title='Approval Amount:' text={ this.props.approvalAmount }/>
+                            <CardTypography value='subtitle2' title='Approval Amount:' text={ this.props.approvalAmount+' ETH' }/>
                             <CardTypography value='subtitle2' title='Requests:' text={ this.props.requestsCount } />
                             <CardTypography value='subtitle2' title='Request Voting Percentage:' text={ this.props.minVotingPercentage } />
-
                             <Typography variant='h6' color='text.secondary' sx={{ mt: 3 }}>Make Contribution</Typography>
                             <Typography variant='subtitle2' align='center' color='text.secondary' sx={{ mt:2, mb:2, ml:1, mr:1 }}>
                                 {
                                     this.state.login ?
-                                    'You have already contributed 1000 Wei, but you can always contribute more...' :
-                                    'Login to view' 
+                                    ( this.state.currentContribution > 0 ?
+                                    'You have already contributed ' + this.state.currentContribution + ' ETH, but you can always contribute more...' : ''
+                                    ) : 'Login to contribute' 
                                 }
                             </Typography>
-                            {
-                                this.state.login ?
-                                <>
-                                    <TextField
-                                        label='Amount'
-                                        fullWidth
-                                        sx={{mb:1}}
-                                        size = 'small'
-                                        value={this.state.title}
-                                        onChange={(event) => {
-                                            this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                        }}
-                                        disabled = {this.state.loading}
-                                    />
-                                    <Button variant='outlined' sx={{ width: '100%' }}>
-                                        Contribute
-                                    </Button>
-                                </> : <></>
-                                    
-                                    
-                            }
-
-
+                            <TextField
+                                label='Amount in ETH'
+                                fullWidth
+                                sx={{mb:1}}
+                                size = 'small'
+                                value={this.state.tempContribution}
+                                onChange={(event) => {
+                                    this.setState({tempContribution: event.target.value})
+                                }}
+                                disabled = { !this.state.login || this.state.loading }
+                            />
+                            <Button variant='contained' disabled={!this.state.login || this.state.loading }
+                                sx={{ width: '100%' }} onClick={this.makeContribution}>
+                                Contribute
+                            </Button>
                             <Typography variant='h6' color='text.secondary' sx={{ mt: 3 }}>Approver Status</Typography>
                             <Typography variant='subtitle2' align='center' color='text.secondary' sx={{ m: 2 }}>
                                 {
-                                    this.state.login ? 
-                                    'Not enough contribution<br/>Enough contribution' :
-                                    'Login to view'
+                                    this.state.login ? (
+                                        this.state.approver ? 'Already an approver' : (
+                                            this.state.currentContribution < this.props.approvalAmount ?
+                                            'Not enough contribution' :
+                                            'Enough contribution'
+                                        )
+                                    ) : 'Login to view'
                                 }
                             </Typography>
-                            <Button variant='outlined' sx={{ width: '100%' }}>
-                                Become Approver<br/>
-                                Revoke Approver Rights
+                            <Button variant='contained' sx={{ width: '100%' }} onClick={this.toggleApprover}
+                                disabled={!this.state.login || this.state.loading || this.state.currentContribution < this.props.approvalAmount}>
+                                {this.state.approver ? 'Revoke Approver Rights' : 'Become Approver'}
                             </Button>
-                            
                         </Box>
                         <Box sx={{ mt: 4, maxWidth: '75%' }}>
-                            
                             <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr: 1 }}>
                                 Contract Address: {this.props.address}
                             </Typography>
                             <Typography variant='subtitle2' align='right' color='#1565c0' sx={{ mr: 1 }}>
                                 Owner: {this.props.owner}
                             </Typography>
-
+                            {
+                                !!this.state.errorMessage ?
+                                <Alert severity="error" sx={{ mt:2, mb:1 }}>{this.state.errorMessage}</Alert> :
+                                <></>
+                            }{
+                                !!this.state.successMessage ?
+                                <Alert severity="success" sx={{ mt:2, mb:1 }}>{this.state.successMessage}</Alert> :
+                                <></>
+                            }
                             <Typography variant='h6' align='left' color='text.secondary' sx={{ p: 1 }}>
                                 Requests for Approval
                             </Typography>
@@ -171,7 +215,6 @@ class Campaign extends React.Component{
                                     <Button>Finalize Request</Button>
                                 </AccordionDetails>
                             </Accordion>
-
                             <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.handleChange}>
                                 <AccordionSummary
                                 expandIcon={<ExpandMoreIcon />}
