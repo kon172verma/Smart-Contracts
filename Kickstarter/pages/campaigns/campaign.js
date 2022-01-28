@@ -42,7 +42,12 @@ class Campaign extends React.Component{
         tempContribution: '',
 
         approver: false,
-        expanded: false
+        expanded: false,
+
+        requestTitle: '',
+        requestDescription: '',
+        requestAmount: '',
+        requestAddress: ''
     }
 
     checkLogin = async() => {
@@ -93,11 +98,28 @@ class Campaign extends React.Component{
         }
     }
 
-    handleChange = () => {
+    toggleAccordion = () => {
         this.state.expanded ?
         this.setState({ expanded: false }) :
         this.setState({ expanded: 'panel1' });
     };
+    addRequest = async() => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
+            await contract.methods.addRequest(this.state.requestTitle, this.state.requestDescription,
+                web3.utils.toWei(this.state.requestAmount), this.state.requestAddress).send({
+                    from: '0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e'
+                });
+            this.setState({
+                loading: false, requestTitle: '', requestDescription: '', requestAmount: '',
+                requestAddress: '', successMessage: 'Successfully added a new request.!',
+                errorMessage: ''
+            });
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
+        }
+    }
 
     render() {
         this.checkLogin();
@@ -129,12 +151,12 @@ class Campaign extends React.Component{
                                 label='Amount in ETH'
                                 fullWidth
                                 sx={{mb:1}}
-                                size = 'small'
+                                size='small'
                                 value={this.state.tempContribution}
                                 onChange={(event) => {
                                     this.setState({tempContribution: event.target.value})
                                 }}
-                                disabled = { !this.state.login || this.state.loading }
+                                disabled={ !this.state.login || this.state.loading }
                             />
                             <Button variant='contained' disabled={!this.state.login || this.state.loading }
                                 sx={{ width: '100%' }} onClick={this.makeContribution}>
@@ -176,102 +198,114 @@ class Campaign extends React.Component{
                             <Typography variant='h6' align='left' color='text.secondary' sx={{ p: 1 }}>
                                 Requests for Approval
                             </Typography>
-                            <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.handleChange}>
-                                <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1bh-content"
-                                id="panel1bh-header">
-                                    <Typography>
-                                        Publication Payment
-                                    </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails sx={{ml:1, mr:1}}>
-                                    <Typography color='text.secondary' sx={{mb:2}}>
-                                        Payment needs to be made to Rajshree publications. This payment is for printing the first 10,000 copies of the book. As per the vendor it will take 10-12 days for the finished product. 
-                                    </Typography>
-                                    <CardTypography value='subtitle2' title='Transfer amount:' text='1000'/>
-                                    <CardTypography value='subtitle2' title="Recepient's Address:" text='0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e'/>
-                                    <CardTypography value='subtitle2' title='Voted by:' text='47/132'/>
-                                    <CardTypography value='subtitle2' title="Approval Percentage:" text='67%'/>
-                                    <Typography color='text.secondary' sx={{mt:2, mb:1}}>Voting Status</Typography>
-                                    <Typography variant='subtitle2'>
-                                        Login to view status or cast vote<br/>
-                                        You have already voted for this request. Your vote: Approve<br/>
-                                        You have already voted for this request. Your vote: Reject<br/>
-                                        You have already voted for this request. Your vote: Don't care<br/>
-                                        You can vote here
-                                    </Typography>
-                                    <ButtonGroup size="small" variant="outlined" aria-label="outlined button group">
-                                        <Button>Approve</Button>
-                                        <Button>Reject</Button>
-                                        <Button>Don't care</Button>
-                                    </ButtonGroup>
-                                    <Typography color='text.secondary' sx={{mt:2, mb:1}}>Request Status</Typography>
-                                    <Typography variant='subtitle2'>
-                                        Ongoing<br/>
-                                        Finalized<br/>
-                                    </Typography>
-                                    <Button>Finalize Request</Button>
-                                </AccordionDetails>
-                            </Accordion>
-                            <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.handleChange}>
-                                <AccordionSummary
-                                expandIcon={<ExpandMoreIcon />}
-                                aria-controls="panel1bh-content"
-                                id="panel1bh-header">
-                                    <Typography color='#1565c0' >
-                                        <AddSharpIcon sx={{ mb: -0.75 }} />
-                                        &nbsp;Add new Request
-                                    </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails sx={{ ml: 1, mr: 1 }}>
-                                    <TextField
-                                        label='Title'
-                                        fullWidth
-                                        size = 'small'
-                                        // value={this.state.title}
-                                        // onChange={(event) => {
-                                        //     this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                        // }}
-                                        // disabled = {this.state.loading}
-                                    />
-                                    <TextField
-                                        label='Description'
-                                        fullWidth multiline
-                                        sx={{ mt: 2 }}
-                                        rows={3}
-                                        size = 'small'
-                                        // value={this.state.title}
-                                        // onChange={(event) => {
-                                        //     this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                        // }}
-                                        // disabled = {this.state.loading}
-                                    />
-                                    <TextField
-                                        label='Amount in ETH'
-                                        fullWidth
-                                        sx={{ mt: 2 }}
-                                        size = 'small'
-                                        // value={this.state.title}
-                                        // onChange={(event) => {
-                                        //     this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                        // }}
-                                        // disabled = {this.state.loading}
-                                    />
-                                    <TextField
-                                        label="Recepient's Address"
-                                        fullWidth
-                                        sx={{ mt: 2 }}
-                                        size = 'small'
-                                        // value={this.state.title}
-                                        // onChange={(event) => {
-                                        //     this.setState({title: event.target.value, errorMessage: '', successMessage:''})
-                                        // }}
-                                        // disabled = {this.state.loading}
-                                    />
-                                    <Button variant='outlined' size='large' sx={{ mt:3, mb:2 }}>Add Request</Button>
-                                </AccordionDetails>
-                            </Accordion>
+                            {   
+                                Object.keys([...Array(2)]).map((i) => {
+                                const campaign = 1;
+                                    
+                                    return (
+                                        <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.toggleAccordion}>
+                                            <AccordionSummary
+                                                expandIcon={<ExpandMoreIcon />}
+                                                aria-controls="panel1bh-content"
+                                                id="panel1bh-header">
+                                                <Typography>
+                                                    Publication Payment
+                                                </Typography>
+                                            </AccordionSummary>
+                                            <AccordionDetails sx={{ ml: 1, mr: 1 }}>
+                                                <Typography color='text.secondary' sx={{ mb: 2 }}>
+                                                    Payment needs to be made to Rajshree publications. This payment is for printing the first 10,000 copies of the book. As per the vendor it will take 10-12 days for the finished product.
+                                                </Typography>
+                                                <CardTypography value='subtitle2' title='Transfer amount:' text='1000' />
+                                                <CardTypography value='subtitle2' title="Recepient's Address:" text='0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e' />
+                                                <CardTypography value='subtitle2' title='Voted by:' text='47/132' />
+                                                <CardTypography value='subtitle2' title="Approval Percentage:" text='67%' />
+                                                <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Voting Status</Typography>
+                                                <Typography variant='subtitle2'>
+                                                    Login to view status or cast vote<br />
+                                                    You have already voted for this request. Your vote: Approve<br />
+                                                    You have already voted for this request. Your vote: Reject<br />
+                                                    You have already voted for this request. Your vote: Don't care<br />
+                                                    You can vote here
+                                                </Typography>
+                                                <ButtonGroup size="small" variant="outlined" aria-label="outlined button group">
+                                                    <Button>Approve</Button>
+                                                    <Button>Reject</Button>
+                                                    <Button>Don't care</Button>
+                                                </ButtonGroup>
+                                                <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Request Status</Typography>
+                                                <Typography variant='subtitle2'>
+                                                    Ongoing<br />
+                                                    Finalized<br />
+                                                </Typography>
+                                                <Button>Finalize Request</Button>
+                                            </AccordionDetails>
+                                        </Accordion>
+                                    )
+                                })
+                            }
+                            {
+                                this.state.account === this.props.owner ?
+                                <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.toggleAccordion}>
+                                    <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel1bh-content"
+                                    id="panel1bh-header">
+                                        <Typography color='#1565c0' >
+                                            <AddSharpIcon sx={{ mb: -0.75 }} />
+                                            &nbsp;Add new Request
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails sx={{ ml: 1, mr: 1 }}>
+                                        <TextField
+                                            label='Title'
+                                            fullWidth
+                                            size='small'
+                                            value={this.state.requestTitle}
+                                            onChange={(event) => {
+                                                this.setState({requestTitle: event.target.value})
+                                            }}
+                                            disabled={this.state.loading}
+                                        />
+                                        <TextField
+                                            label='Description'
+                                            fullWidth multiline
+                                            sx={{ mt: 2 }}
+                                            rows={3}
+                                            size='small'
+                                            value={this.state.requestDescription}
+                                            onChange={(event) => {
+                                                this.setState({requestDescription: event.target.value})
+                                            }}
+                                            disabled={this.state.loading}
+                                        />
+                                        <TextField
+                                            label='Amount in ETH'
+                                            fullWidth
+                                            sx={{ mt: 2 }}
+                                            size='small'
+                                            value={this.state.requestAmount}
+                                            onChange={(event) => {
+                                                this.setState({requestAmount: event.target.value})
+                                            }}
+                                            disabled={this.state.loading}
+                                        />
+                                        <TextField
+                                            label="Recepient's Address"
+                                            fullWidth
+                                            sx={{ mt: 2 }}
+                                            size='small'
+                                            value={this.state.requestAddress}
+                                            onChange={(event) => {
+                                                this.setState({requestAddress: event.target.value})
+                                            }}
+                                            disabled={this.state.loading}
+                                        />
+                                            <Button variant='outlined' size='large' disabled={this.state.loading}
+                                                sx={{ mt: 3, mb: 2 }} onClick={this.addRequest}>Add Request</Button>
+                                    </AccordionDetails>
+                                </Accordion> : <></>
+                            }
                         </Box>
                     </Box>
                 </Container>
