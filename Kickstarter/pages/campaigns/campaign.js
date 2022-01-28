@@ -25,11 +25,12 @@ class Campaign extends React.Component{
         const approversCount = data[7];
         const requestsCount = await contract.methods.requestsCount().call();
         return {
-            address, owner, title, description, balance, approvalAmount, minVotingPercentage,
-            contributorsCount, approversCount, requestsCount, contract
+            address, owner, title, description, balance, approvalAmount,
+            minVotingPercentage, contributorsCount, approversCount, requestsCount
         };
     }
     state = {
+        contract: undefined,
         login: false,
         account: '',
 
@@ -53,7 +54,7 @@ class Campaign extends React.Component{
                 const currentContribution = web3.utils.fromWei(await contract.methods.contributors(accounts[0]).call());
                 const approver = await contract.methods.approvers(accounts[0]).call();
                 console.log('contribution: ', currentContribution, 'approver: ', approver);
-                this.setState({ currentContribution, approver });
+                this.setState({ contract, currentContribution, approver });
             } else {
                 this.setState({ login: false, account: '' });
             }
@@ -62,8 +63,7 @@ class Campaign extends React.Component{
     makeContribution = async () => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
-            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
-            await contract.methods.contribute().send({
+            await this.state.contract.methods.contribute().send({
                 from: this.state.account,
                 value: web3.utils.toWei(this.state.tempContribution)
             })
@@ -75,15 +75,14 @@ class Campaign extends React.Component{
     toggleApprover = async () => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
-            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
             if(this.state.approver){
-                await contract.methods.revokeApprover().send({ from: this.state.account });
+                await this.state.contract.methods.revokeApprover().send({ from: this.state.account });
                 this.setState({
                     loading: false, approver: false,
                     successMessage: 'Your approver status has been revoked.!', errorMessage: ''
                 });
             } else {
-                await contract.methods.becomeApprover().send({ from: this.state.account });
+                await this.state.contract.methods.becomeApprover().send({ from: this.state.account });
                 this.setState({
                     loading: false, approver: true,
                     successMessage: 'Congrats, You are now an approver.!', errorMessage: ''
@@ -273,10 +272,6 @@ class Campaign extends React.Component{
                                     <Button variant='outlined' size='large' sx={{ mt:3, mb:2 }}>Add Request</Button>
                                 </AccordionDetails>
                             </Accordion>
-
-
-                                
-
                         </Box>
                     </Box>
                 </Container>
