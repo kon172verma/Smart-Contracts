@@ -24,9 +24,14 @@ class Campaign extends React.Component{
         const contributorsCount = data[6];
         const approversCount = data[7];
         const requestsCount = await contract.methods.requestsCount().call();
+        const requests = await Promise.all(
+            Object.keys([...Array(requestsCount)]).map(async(requestId) => {
+                return { [requestId]: await contract.methods.requests(requestId).call() };
+            })
+        )
         return {
             address, owner, title, description, balance, approvalAmount,
-            minVotingPercentage, contributorsCount, approversCount, requestsCount
+            minVotingPercentage, contributorsCount, approversCount, requestsCount, requests
         };
     }
     state = {
@@ -97,7 +102,6 @@ class Campaign extends React.Component{
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
     }
-
     toggleAccordion = () => {
         this.state.expanded ?
         this.setState({ expanded: false }) :
@@ -106,15 +110,25 @@ class Campaign extends React.Component{
     addRequest = async() => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
-            const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
-            await contract.methods.addRequest(this.state.requestTitle, this.state.requestDescription,
-                web3.utils.toWei(this.state.requestAmount), this.state.requestAddress).send({
-                    from: '0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e'
-                });
+            await this.state.contract.methods.addRequest(this.state.requestTitle, this.state.requestDescription,
+                web3.utils.toWei(this.state.requestAmount), this.state.requestAddress)
+                .send({ from: this.state.account });
             this.setState({
                 loading: false, requestTitle: '', requestDescription: '', requestAmount: '',
                 requestAddress: '', successMessage: 'Successfully added a new request.!',
                 errorMessage: ''
+            });
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
+        }
+    }
+    finalizeRequest = async (requestId) => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            await this.state.contract.methods.finalizeRequest(requestId)
+                .send({ from: this.state.account });
+            this.setState({
+                loading: false, successMessage: 'Successfully finalized the request.!', errorMessage: ''
             });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
@@ -199,46 +213,45 @@ class Campaign extends React.Component{
                                 Requests for Approval
                             </Typography>
                             {   
-                                Object.keys([...Array(2)]).map((i) => {
-                                const campaign = 1;
-                                    
+                                Object.keys(this.props.requests).map((i) => {
+                                    console.log('requests: ', this.props.requests[i]['0'])
+                                    const request = this.props.requests[i]['0'];
                                     return (
                                         <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.toggleAccordion}>
                                             <AccordionSummary
                                                 expandIcon={<ExpandMoreIcon />}
                                                 aria-controls="panel1bh-content"
                                                 id="panel1bh-header">
-                                                <Typography>
-                                                    Publication Payment
-                                                </Typography>
+                                                <Typography>{request.requestTitle}</Typography>
                                             </AccordionSummary>
                                             <AccordionDetails sx={{ ml: 1, mr: 1 }}>
-                                                <Typography color='text.secondary' sx={{ mb: 2 }}>
-                                                    Payment needs to be made to Rajshree publications. This payment is for printing the first 10,000 copies of the book. As per the vendor it will take 10-12 days for the finished product.
-                                                </Typography>
-                                                <CardTypography value='subtitle2' title='Transfer amount:' text='1000' />
-                                                <CardTypography value='subtitle2' title="Recepient's Address:" text='0xC611111cBB2Cb882D58A2c25f143A7Bd0F47ee9e' />
-                                                <CardTypography value='subtitle2' title='Voted by:' text='47/132' />
-                                                <CardTypography value='subtitle2' title="Approval Percentage:" text='67%' />
+                                                <Typography color='text.secondary' sx={{ mb: 2 }}>{request.requestDescription}</Typography>
+                                                <CardTypography value='subtitle2' title='Transfer amount:' text={web3.utils.fromWei(request.value)} />
+                                                <CardTypography value='subtitle2' title="Recepient's Address:" text={request.recepient} />
+                                                <CardTypography value='subtitle2' title='Voted by:' text={request.votesCount+'/'+this.props.approversCount} />
+                                                <CardTypography value='subtitle2' title="Approval Percentage:"
+                                                    text={(parseInt(request.votesCount) ? parseInt(request.yesCount) / (parseInt(request.yesCount)+parseInt(request.noCount)) : '0')+' %'} />
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Voting Status</Typography>
-                                                <Typography variant='subtitle2'>
-                                                    Login to view status or cast vote<br />
-                                                    You have already voted for this request. Your vote: Approve<br />
-                                                    You have already voted for this request. Your vote: Reject<br />
-                                                    You have already voted for this request. Your vote: Don't care<br />
-                                                    You can vote here
-                                                </Typography>
-                                                <ButtonGroup size="small" variant="outlined" aria-label="outlined button group">
+                                                <Typography variant='subtitle2'>{
+                                                    this.state.login ? (
+                                                        // this.state.
+                                                        // You have already voted for this request. Your vote: Approve<br />
+                                                        // You have already voted for this request. Your vote: Reject<br />
+                                                        // You have already voted for this request. Your vote: Don't care<br />
+                                                        'You can vote here'
+                                                    ) : 'Login to view status or cast vote'
+                                                }</Typography>
+                                                <ButtonGroup size="small" variant="contained" aria-label="outlined button group">
                                                     <Button>Approve</Button>
                                                     <Button>Reject</Button>
                                                     <Button>Don't care</Button>
                                                 </ButtonGroup>
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Request Status</Typography>
-                                                <Typography variant='subtitle2'>
-                                                    Ongoing<br />
-                                                    Finalized<br />
-                                                </Typography>
-                                                <Button>Finalize Request</Button>
+                                                <Typography variant='subtitle2'>{request.complete ? 'Finalized' : 'Ongoing'}</Typography>
+                                                {
+                                                    this.props.address === this.state.owner ?
+                                                    <Button variant='contained' onClick={this.finalizeRequest(i)}>Finalize Request</Button> : <></>
+                                                }
                                             </AccordionDetails>
                                         </Accordion>
                                     )
