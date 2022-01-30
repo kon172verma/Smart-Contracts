@@ -270,51 +270,37 @@ class Campaign extends React.Component{
                                     </AccordionSummary>
                                     <AccordionDetails sx={{ ml: 1, mr: 1 }}>
                                         <TextField
-                                            label='Title'
-                                            fullWidth
-                                            size='small'
+                                            label='Title' fullWidth size='small' disabled={this.state.loading}
                                             value={this.state.requestTitle}
                                             onChange={(event) => {
                                                 this.setState({requestTitle: event.target.value})
                                             }}
-                                            disabled={this.state.loading}
                                         />
                                         <TextField
-                                            label='Description'
-                                            fullWidth multiline
-                                            sx={{ mt: 2 }}
-                                            rows={3}
-                                            size='small'
-                                            value={this.state.requestDescription}
+                                            label='Description' fullWidth multiline sx={{ mt: 2 }} rows={3} size='small'
+                                            disabled={this.state.loading} value={this.state.requestDescription}
                                             onChange={(event) => {
                                                 this.setState({requestDescription: event.target.value})
                                             }}
-                                            disabled={this.state.loading}
                                         />
                                         <TextField
-                                            label='Amount in ETH'
-                                            fullWidth
-                                            sx={{ mt: 2 }}
-                                            size='small'
-                                            value={this.state.requestAmount}
+                                            label='Amount in ETH' fullWidth sx={{ mt: 2 }} size='small'
+                                            disabled={this.state.loading} value={this.state.requestAmount}
                                             onChange={(event) => {
                                                 this.setState({requestAmount: event.target.value})
                                             }}
-                                            disabled={this.state.loading}
                                         />
                                         <TextField
-                                            label="Recepient's Address"
-                                            fullWidth
-                                            sx={{ mt: 2 }}
-                                            size='small'
-                                            value={this.state.requestAddress}
+                                            label="Recepient's Address" fullWidth sx={{ mt: 2 }} size='small'
+                                            disabled={this.state.loading} value={this.state.requestAddress}
                                             onChange={(event) => {
                                                 this.setState({requestAddress: event.target.value})
                                             }}
-                                            disabled={this.state.loading}
                                         />
                                             <Button variant='outlined' size='large' disabled={this.state.loading}
-                                                sx={{ mt: 3, mb: 2 }} onClick={this.addRequest}>Add Request</Button>
+                                                sx={{ mt: 3, mb: 2 }} onClick={this.addRequest}>
+                                                Add Request
+                                            </Button>
                                     </AccordionDetails>
                                 </Accordion> : <></>
                             }
