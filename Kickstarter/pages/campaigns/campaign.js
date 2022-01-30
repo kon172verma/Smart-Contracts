@@ -255,10 +255,10 @@ class Campaign extends React.Component{
                             }
                             {
                                 this.state.account === this.props.owner ?
-                                    <Accordion expanded={this.state.expanded === 'addNewRequest'} key={'addNewRequest'}
-                                        onChange={(event) => {
-                                            this.setState({ expanded: (this.state.expanded === event.target.key ? 'false' : 'addNewRequest') })
-                                        }}>
+                                <Accordion expanded={this.state.expanded === 'addNewRequest'} key={'addNewRequest'}
+                                    onChange={(event) => {
+                                        this.setState({ expanded: (this.state.expanded === event.target.key ? 'false' : 'addNewRequest') })
+                                    }}>
                                     <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel1bh-content"
