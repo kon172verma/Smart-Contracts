@@ -38,33 +38,27 @@ class Campaign extends React.Component{
         contract: undefined,
         login: false,
         account: '',
-
         loading: false,
         errorMessage: '',
         successMessage: '',
-
         currentContribution: 0,
-        tempContribution: '',
-
         approver: false,
-        expanded: false,
-
+        tempContribution: '',
         requestTitle: '',
         requestDescription: '',
         requestAmount: '',
-        requestAddress: ''
+        requestAddress: '',
+        expanded: false
     }
 
     checkLogin = async() => {
         const accounts = await web3.eth.getAccounts();
         if(this.state.account != accounts[0]){
             if (accounts[0]) {
-                this.setState({ login: true, account: accounts[0] });
                 const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
                 const currentContribution = web3.utils.fromWei(await contract.methods.contributors(accounts[0]).call());
                 const approver = await contract.methods.approvers(accounts[0]).call();
-                console.log('contribution: ', currentContribution, 'approver: ', approver);
-                this.setState({ contract, currentContribution, approver });
+                this.setState({ login: true, account: accounts[0], contract, currentContribution, approver });
             } else {
                 this.setState({ login: false, account: '' });
             }
@@ -102,21 +96,14 @@ class Campaign extends React.Component{
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
     }
-    toggleAccordion = () => {
-        this.state.expanded ?
-        this.setState({ expanded: false }) :
-        this.setState({ expanded: 'panel1' });
-    };
     addRequest = async() => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
             await this.state.contract.methods.addRequest(this.state.requestTitle, this.state.requestDescription,
-                web3.utils.toWei(this.state.requestAmount), this.state.requestAddress)
-                .send({ from: this.state.account });
+                web3.utils.toWei(this.state.requestAmount), this.state.requestAddress).send({ from: this.state.account });
             this.setState({
                 loading: false, requestTitle: '', requestDescription: '', requestAmount: '',
-                requestAddress: '', successMessage: 'Successfully added a new request.!',
-                errorMessage: ''
+                requestAddress: '', successMessage: 'Successfully added a new request.!', errorMessage: ''
             });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
@@ -125,14 +112,16 @@ class Campaign extends React.Component{
     finalizeRequest = async (requestId) => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
-            await this.state.contract.methods.finalizeRequest(requestId)
-                .send({ from: this.state.account });
+            await this.state.contract.methods.finalizeRequest(requestId).send({ from: this.state.account });
             this.setState({
                 loading: false, successMessage: 'Successfully finalized the request.!', errorMessage: ''
             });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
+    }
+    approveRequest = async (value) => {
+        console.log('value: ', value);
     }
 
     render() {
@@ -214,10 +203,12 @@ class Campaign extends React.Component{
                             </Typography>
                             {   
                                 Object.keys(this.props.requests).map((i) => {
-                                    console.log('requests: ', this.props.requests[i]['0'])
                                     const request = this.props.requests[i]['0'];
                                     return (
-                                        <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.toggleAccordion}>
+                                        <Accordion expanded={this.state.expanded === i} key={i}
+                                            onChange={(event) => {
+                                                this.setState({ expanded: (this.state.expanded === event.target.key ? 'false' : i) })
+                                            }}>
                                             <AccordionSummary
                                                 expandIcon={<ExpandMoreIcon />}
                                                 aria-controls="panel1bh-content"
@@ -226,31 +217,36 @@ class Campaign extends React.Component{
                                             </AccordionSummary>
                                             <AccordionDetails sx={{ ml: 1, mr: 1 }}>
                                                 <Typography color='text.secondary' sx={{ mb: 2 }}>{request.requestDescription}</Typography>
-                                                <CardTypography value='subtitle2' title='Transfer amount:' text={web3.utils.fromWei(request.value)} />
+                                                <CardTypography value='subtitle2' title='Transfer amount:' text={web3.utils.fromWei(request.value)+' ETH'} />
                                                 <CardTypography value='subtitle2' title="Recepient's Address:" text={request.recepient} />
                                                 <CardTypography value='subtitle2' title='Voted by:' text={request.votesCount+'/'+this.props.approversCount} />
                                                 <CardTypography value='subtitle2' title="Approval Percentage:"
-                                                    text={(parseInt(request.votesCount) ? parseInt(request.yesCount) / (parseInt(request.yesCount)+parseInt(request.noCount)) : '0')+' %'} />
+                                                    text={(parseInt(request.votesCount) ?
+                                                        parseInt(request.yesCount) / (parseInt(request.yesCount)+parseInt(request.noCount)) : '0')+' %'} />
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Voting Status</Typography>
                                                 <Typography variant='subtitle2'>{
                                                     this.state.login ? (
-                                                        // this.state.
-                                                        // You have already voted for this request. Your vote: Approve<br />
-                                                        // You have already voted for this request. Your vote: Reject<br />
-                                                        // You have already voted for this request. Your vote: Don't care<br />
-                                                        'You can vote here'
+                                                        this.state.approver ? (
+                                                            'You can cast your vote here'
+                                                        ) : 'You must be an approver to cast a vote'
                                                     ) : 'Login to view status or cast vote'
                                                 }</Typography>
-                                                <ButtonGroup size="small" variant="contained" aria-label="outlined button group">
-                                                    <Button>Approve</Button>
-                                                    <Button>Reject</Button>
-                                                    <Button>Don't care</Button>
-                                                </ButtonGroup>
+                                                {
+                                                    this.state.login && this.state.approver ?
+                                                    <ButtonGroup size="small" variant="contained">
+                                                        <Button onClick={()=>this.approveRequest(i)}>Approve</Button>
+                                                        <Button onClick={()=>this.approveRequest(i)}>Reject</Button>
+                                                        <Button onClick={()=>this.approveRequest(i)}>Don't care</Button>
+                                                    </ButtonGroup> : <></>
+                                                }
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Request Status</Typography>
                                                 <Typography variant='subtitle2'>{request.complete ? 'Finalized' : 'Ongoing'}</Typography>
                                                 {
-                                                    this.props.address === this.state.owner ?
-                                                    <Button variant='contained' onClick={this.finalizeRequest(i)}>Finalize Request</Button> : <></>
+                                                    this.state.login && this.state.address === this.state.owner ?
+                                                    <Button variant='contained' size='small' disabled={this.state.loading}
+                                                        onClick={()=>this.finalizeRequest(i)}>
+                                                        Finalize Request
+                                                    </Button> : <></>
                                                 }
                                             </AccordionDetails>
                                         </Accordion>
@@ -259,7 +255,10 @@ class Campaign extends React.Component{
                             }
                             {
                                 this.state.account === this.props.owner ?
-                                <Accordion expanded={this.state.expanded === 'panel1'} onChange={this.toggleAccordion}>
+                                    <Accordion expanded={this.state.expanded === 'addNewRequest'} key={'addNewRequest'}
+                                        onChange={(event) => {
+                                            this.setState({ expanded: (this.state.expanded === event.target.key ? 'false' : 'addNewRequest') })
+                                        }}>
                                     <AccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
                                     aria-controls="panel1bh-content"
