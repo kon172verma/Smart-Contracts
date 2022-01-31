@@ -234,9 +234,9 @@ class Campaign extends React.Component{
                                                 {
                                                     this.state.login && this.state.approver ?
                                                     <ButtonGroup size="small" variant="contained">
-                                                        <Button onClick={()=>this.approveRequest(i)}>Approve</Button>
-                                                        <Button onClick={()=>this.approveRequest(i)}>Reject</Button>
-                                                        <Button onClick={()=>this.approveRequest(i)}>Don't care</Button>
+                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Approve</Button>
+                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Reject</Button>
+                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Don't care</Button>
                                                     </ButtonGroup> : <></>
                                                 }
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Request Status</Typography>
