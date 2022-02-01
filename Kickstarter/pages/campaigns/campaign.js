@@ -48,7 +48,7 @@ class Campaign extends React.Component{
         requestDescription: '',
         requestAmount: '',
         requestAddress: '',
-        expanded: false
+        expanded: '0'
     }
 
     checkLogin = async() => {
@@ -120,8 +120,16 @@ class Campaign extends React.Component{
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
     }
-    approveRequest = async (value) => {
-        console.log('value: ', value);
+    approveRequest = async (requestId, value) => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            await this.state.contract.methods.approveRequest(requestId, value).send({ from: this.state.account });
+            this.setState({
+                loading: false, successMessage: 'Your vote has been successfully registered.!', errorMessage: ''
+            });
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
+        }
     }
 
     render() {
@@ -131,7 +139,7 @@ class Campaign extends React.Component{
                 { this.state.loading ? <LinearProgress color="inherit"/> : <></> }
                 <Container>
                     <Typography variant='h5' align='center' sx={{ mt:2, padding: '20px 30px 0 30px' }}>{ this.props.title }</Typography>
-                    <Typography variant='subtitle1' align='center' color='text.secondary' sx={{ m:2 }}>{ this.props.description }</Typography>
+                    <Typography variant='subtitle1' align='center' color='text.secondary' sx={{ m:2, mb:0 }}>{ this.props.description }</Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', ml: 2, mr: 2 }}>
                         <Box sx={{width:'max-content', maxWidth:'20%', height:'max-content', p:2, mt:4, mr:2, border:'1px dashed gray'}}>
                             <Typography variant='h6' color='text.secondary' sx={{ pb: 1 }}>Campaign Details</Typography>
@@ -217,37 +225,43 @@ class Campaign extends React.Component{
                                             </AccordionSummary>
                                             <AccordionDetails sx={{ ml: 1, mr: 1 }}>
                                                 <Typography color='text.secondary' sx={{ mb: 2 }}>{request.requestDescription}</Typography>
-                                                <CardTypography value='subtitle2' title='Transfer amount:' text={web3.utils.fromWei(request.value)+' ETH'} />
-                                                <CardTypography value='subtitle2' title="Recepient's Address:" text={request.recepient} />
-                                                <CardTypography value='subtitle2' title='Voted by:' text={request.votesCount+'/'+this.props.approversCount} />
-                                                <CardTypography value='subtitle2' title="Approval Percentage:"
-                                                    text={(parseInt(request.votesCount) ?
-                                                        parseInt(request.yesCount) / (parseInt(request.yesCount)+parseInt(request.noCount)) : '0')+' %'} />
+                                                <Box sx={{ml:1}}>
+                                                    <CardTypography value='subtitle2' title='Transfer amount:' text={web3.utils.fromWei(request.value) + ' ETH'} />
+                                                    <CardTypography value='subtitle2' title="Recepient's Address:" text={request.recepient} />
+                                                    <CardTypography value='subtitle2' title='Voted by:' text={request.votesCount+'/'+this.props.approversCount} />
+                                                    <CardTypography value='subtitle2' title="Approval Percentage:"
+                                                        text={(parseInt(request.yesCount) || parseInt(request.noCount) ?
+                                                            parseInt(request.yesCount) / (parseInt(request.yesCount)+parseInt(request.noCount)) * 100 : '0')+' %'} />
+                                                </Box>
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Voting Status</Typography>
-                                                <Typography variant='subtitle2'>{
-                                                    this.state.login ? (
-                                                        this.state.approver ? (
-                                                            'You can cast your vote here'
-                                                        ) : 'You must be an approver to cast a vote'
-                                                    ) : 'Login to view status or cast vote'
-                                                }</Typography>
-                                                {
-                                                    this.state.login && this.state.approver ?
-                                                    <ButtonGroup size="small" variant="contained">
-                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Approve</Button>
-                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Reject</Button>
-                                                        <Button onClick={async()=>{await this.approveRequest(i)}}>Don't care</Button>
-                                                    </ButtonGroup> : <></>
-                                                }
+                                                <Box sx={{ml:1}}>
+                                                    <Typography variant='subtitle2'>{
+                                                        this.state.login ? (
+                                                            this.state.approver ? (
+                                                                'You can cast your vote here'
+                                                            ) : 'You must be an approver to cast a vote'
+                                                        ) : 'Login to view status or cast vote'
+                                                    }</Typography>
+                                                    {
+                                                        this.state.login ?
+                                                        <ButtonGroup size="small" variant="contained" disabled={!this.state.approver || this.state.loading} sx={{mt:1}} >
+                                                            <Button onClick={async () => { await this.approveRequest(i, 1) }}>Approve</Button>
+                                                            <Button onClick={async () => { await this.approveRequest(i, 2) }}>Reject</Button>
+                                                            <Button onClick={async () => { await this.approveRequest(i, 3) }}>Don't care</Button>
+                                                        </ButtonGroup> : <></>
+                                                    }
+                                                </Box>
                                                 <Typography color='text.secondary' sx={{ mt: 2, mb: 1 }}>Request Status</Typography>
-                                                <Typography variant='subtitle2'>{request.complete ? 'Finalized' : 'Ongoing'}</Typography>
-                                                {
-                                                    this.state.login && this.state.address === this.state.owner ?
-                                                    <Button variant='contained' size='small' disabled={this.state.loading}
-                                                        onClick={()=>this.finalizeRequest(i)}>
-                                                        Finalize Request
-                                                    </Button> : <></>
-                                                }
+                                                <Box sx={{ml:1}}>
+                                                    <Typography variant='subtitle2'>{request.complete ? 'Finalized' : 'Ongoing'}</Typography>
+                                                    {
+                                                        this.state.account === this.state.owner ?
+                                                        <Button variant='contained' size='small' disabled={this.state.loading}
+                                                            sx={{mt:1}} onClick={async()=>{await this.finalizeRequest(i)}}>
+                                                            Finalize Request
+                                                        </Button> : <></>
+                                                    }
+                                                </Box>
                                             </AccordionDetails>
                                         </Accordion>
                                     )
