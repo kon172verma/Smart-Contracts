@@ -51,19 +51,25 @@ class Campaign extends React.Component{
         expanded: '0'
     }
 
-    checkLogin = async() => {
+    checkLogin = async () => {
         const accounts = await web3.eth.getAccounts();
         if(this.state.account != accounts[0]){
             if (accounts[0]) {
-                const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
-                const currentContribution = web3.utils.fromWei(await contract.methods.contributors(accounts[0]).call());
-                const approver = await contract.methods.approvers(accounts[0]).call();
-                this.setState({ login: true, account: accounts[0], contract, currentContribution, approver });
+                this.setState({ login: true, account: accounts[0] });
+                await this.getUserData();
             } else {
                 this.setState({ login: false, account: '' });
             }
         }
     }
+    getUserData = async () => {
+        const accounts = await web3.eth.getAccounts();
+        const contract = await new web3.eth.Contract(campaignContract.abi, this.props.address);
+        const currentContribution = web3.utils.fromWei(await contract.methods.contributors(accounts[0]).call());
+        const approver = await contract.methods.approvers(accounts[0]).call();
+        this.setState({ contract, currentContribution, approver });
+    }
+
     makeContribution = async () => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
@@ -71,6 +77,7 @@ class Campaign extends React.Component{
                 from: this.state.account,
                 value: web3.utils.toWei(this.state.tempContribution)
             })
+            await this.getUserData();
             this.setState({ loading: false, successMessage: 'Thank you for your contribution.!', errorMessage: '' });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
@@ -81,12 +88,14 @@ class Campaign extends React.Component{
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
             if(this.state.approver){
                 await this.state.contract.methods.revokeApprover().send({ from: this.state.account });
+                await this.getUserData();
                 this.setState({
                     loading: false, approver: false,
                     successMessage: 'Your approver status has been revoked.!', errorMessage: ''
                 });
             } else {
                 await this.state.contract.methods.becomeApprover().send({ from: this.state.account });
+                await this.getUserData();
                 this.setState({
                     loading: false, approver: true,
                     successMessage: 'Congrats, You are now an approver.!', errorMessage: ''
@@ -96,25 +105,15 @@ class Campaign extends React.Component{
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
         }
     }
-    addRequest = async() => {
+    addRequest = async () => {
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
             await this.state.contract.methods.addRequest(this.state.requestTitle, this.state.requestDescription,
                 web3.utils.toWei(this.state.requestAmount), this.state.requestAddress).send({ from: this.state.account });
+            await this.getUserData();
             this.setState({
                 loading: false, requestTitle: '', requestDescription: '', requestAmount: '',
                 requestAddress: '', successMessage: 'Successfully added a new request.!', errorMessage: ''
-            });
-        } catch (error) {
-            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
-        }
-    }
-    finalizeRequest = async (requestId) => {
-        try {
-            this.setState({ loading: true, errorMessage: '', successMessage: '' });
-            await this.state.contract.methods.finalizeRequest(requestId).send({ from: this.state.account });
-            this.setState({
-                loading: false, successMessage: 'Successfully finalized the request.!', errorMessage: ''
             });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
@@ -124,8 +123,21 @@ class Campaign extends React.Component{
         try {
             this.setState({ loading: true, errorMessage: '', successMessage: '' });
             await this.state.contract.methods.approveRequest(requestId, value).send({ from: this.state.account });
+            await this.getUserData();
             this.setState({
                 loading: false, successMessage: 'Your vote has been successfully registered.!', errorMessage: ''
+            });
+        } catch (error) {
+            this.setState({ loading: false, successMessage: '', errorMessage: error.message });
+        }
+    }
+    finalizeRequest = async (requestId) => {
+        try {
+            this.setState({ loading: true, errorMessage: '', successMessage: '' });
+            await this.state.contract.methods.finalizeRequest(requestId).send({ from: this.state.account });
+            await this.getUserData();
+            this.setState({
+                loading: false, successMessage: 'Successfully finalized the request.!', errorMessage: ''
             });
         } catch (error) {
             this.setState({ loading: false, successMessage: '', errorMessage: error.message });
@@ -255,9 +267,9 @@ class Campaign extends React.Component{
                                                 <Box sx={{ml:1}}>
                                                     <Typography variant='subtitle2'>{request.complete ? 'Finalized' : 'Ongoing'}</Typography>
                                                     {
-                                                        this.state.account === this.state.owner ?
+                                                        this.state.account === this.props.owner ?
                                                         <Button variant='contained' size='small' disabled={this.state.loading}
-                                                            sx={{mt:1}} onClick={async()=>{await this.finalizeRequest(i)}}>
+                                                            sx={{mt:1, mb:1}} onClick={async()=>{await this.finalizeRequest(i)}}>
                                                             Finalize Request
                                                         </Button> : <></>
                                                     }
