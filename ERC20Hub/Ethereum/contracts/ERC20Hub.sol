@@ -12,4 +12,8 @@ contract ERC20Hub{
         ERC20Tokens.push(address(token));
         return true;
     }
+
+    function viewERC20Tokens() public view returns(address[] memory){
+        return ERC20Tokens;
+    }
 }

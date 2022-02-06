@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "compile": "node Ethereum/compile.js",
-    "test": "mocha",
+    "deploy": "node Ethereum/deploy.js",
+    "test": "mocha Ethereum/test/",
     "dev": "next dev"
   },
   "keywords": [],
