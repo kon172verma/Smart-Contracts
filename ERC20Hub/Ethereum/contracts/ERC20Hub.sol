@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8 <0.9;
-import './ERC20Interface.sol';
 import './ERC20.sol';
 
 contract ERC20Hub{

@@ -29,7 +29,7 @@ contract ERC20 is ERC20Interface{
     }
 
     function transfer(address _to, uint256 _amount) public override returns(bool){
-        require(balances[msg.sender] >= _amount);
+        require(balances[msg.sender] >= _amount, 'You do not have enough balance');
         balances[msg.sender] -= _amount;
         balances[_to] += _amount;
         emit Transfer(msg.sender, _to, _amount);
@@ -37,10 +37,11 @@ contract ERC20 is ERC20Interface{
     }
 
     function transferFrom(address _from, address _to, uint256 _amount) public override returns(bool){
-        require(approval[_from][msg.sender] >= _amount);
-        require(balances[_from] >= _amount);
+        require(approval[_from][msg.sender] >= _amount, 'You are not approved to withdraw from this account');
+        require(balances[_from] >= _amount, 'Sender does not have the required balance');
         balances[_from] -= _amount;
         balances[_to] += _amount;
+        approval[_from][msg.sender] -= _amount;
         emit Transfer(_from, _to, _amount);
         return true;
     }
